@@ -25,6 +25,3 @@ SUID + RPATH。
 - flag：`/flag.txt`，`root:root 0400`，每题固定值，来源为各题目录的 `flag.txt`
 - 构建与运行见 `Linux/README.md` 与 `Linux/deploy.md`
 
-## 不入库的内容
-
-镜像 tar（`_images/`）、PPT（`*.pptx`）、预览图（`_preview/`）由 `.gitignore` 统一忽略。
