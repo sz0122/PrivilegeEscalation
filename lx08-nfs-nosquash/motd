@@ -1,0 +1,11 @@
+
+Welcome to the file server (lx08).
+
+/srv/nfs-share is exported over NFS to the internal network with
+  rw, sync, no_root_squash
+A root job re-mounts the export every minute and runs the health
+check script that lives inside the share.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: medium   Est. time: 15-20 min

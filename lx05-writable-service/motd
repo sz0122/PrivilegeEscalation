@@ -1,0 +1,9 @@
+
+Welcome to the monitor host (lx05).
+
+A root supervisor checks the monitoring app every minute.
+The supervisor script itself is maintained by the web team.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-20 min (cron waits 1 min)

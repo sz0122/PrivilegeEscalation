@@ -1,0 +1,9 @@
+
+Welcome to the app log host (lx02).
+
+The ops team gave you read-only access to the application logs
+under /var/log/app so you can investigate the slow-query warning.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-15 min

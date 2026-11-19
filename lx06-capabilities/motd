@@ -1,0 +1,9 @@
+
+Welcome to the app host (lx06).
+
+An install script once "conveniently" added special privileges to an
+interpreter so a service could switch users. That convenience is still there.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: medium   Est. time: 15-20 min

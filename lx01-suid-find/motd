@@ -1,0 +1,7 @@
+
+Welcome to the ops workstation (lx01).
+
+Your mission: find out who messed up the web root /srv/www,
+then escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-15 min

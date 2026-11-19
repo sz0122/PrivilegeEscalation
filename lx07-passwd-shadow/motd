@@ -1,0 +1,9 @@
+
+Welcome to the legacy server (lx07).
+
+A "permissions batch fix" script touched /etc/passwd last year.
+Nobody paid much attention to it afterwards.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-15 min

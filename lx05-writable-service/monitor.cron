@@ -1,0 +1,2 @@
+# Monitor supervisor (managed by ops)
+* * * * * root /usr/bin/python3 /opt/monitor/supervisor.py

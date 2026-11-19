@@ -1,0 +1,5 @@
+# 镜像与 PPT 产物不入库
+_images/
+*.tar
+*.pptx
+_preview/

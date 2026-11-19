@@ -1,0 +1,65 @@
+# 提权题通用基础镜像
+# 所有题目镜像均 FROM priv-base:latest，统一 sshd、用户体系、flag 机制
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+RUN apt-get update -qq && \
+    apt-get install -y -qq --no-install-recommends \
+        openssh-server \
+        sudo \
+        procps \
+        iproute2 \
+        iputils-ping \
+        netcat-openbsd \
+        curl \
+        wget \
+        ca-certificates \
+        less \
+        vim-tiny \
+        nano \
+        file \
+        tree \
+        findutils \
+        gcc \
+        libc6-dev \
+        python3 \
+        libcap2-bin \
+        cron \
+        libpam-pwquality \
+        passwd \
+        login \
+        coreutils \
+        bash \
+        tar \
+        gzip \
+        rsync \
+        jq \
+        unzip \
+        acl \
+        attr && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# ---- SSH 配置：允许密码登录，题库账户使用密码 ----
+RUN mkdir -p /run/sshd /var/run/sshd && \
+    sed -ri 's/^#?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && \
+    sed -ri 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -ri 's/^#?KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config && \
+    sed -ri 's/^#?UsePAM.*/UsePAM yes/' /etc/ssh/sshd_config && \
+    sed -ri 's/^#?X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config && \
+    echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config && \
+    echo 'PrintMotd no' >> /etc/ssh/sshd_config && \
+    echo 'Banner none' >> /etc/ssh/sshd_config
+
+# ---- flag 生成器（构建期调用，保证每次 build 不同）----
+COPY make_flag.sh /usr/local/sbin/make_flag.sh
+RUN chmod 755 /usr/local/sbin/make_flag.sh
+
+# ---- 通用入口 ----
+COPY entrypoint.sh /usr/local/sbin/entrypoint.sh
+RUN chmod 755 /usr/local/sbin/entrypoint.sh
+
+EXPOSE 22
+ENTRYPOINT ["/usr/local/sbin/entrypoint.sh"]

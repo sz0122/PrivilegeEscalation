@@ -1,0 +1,9 @@
+
+Welcome to the monitoring host (lx04).
+
+A root job writes a disk-usage report into /var/reports every minute.
+The report script calls a helper by its bare command name.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-20 min (cron waits 1 min)

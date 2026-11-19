@@ -1,0 +1,2 @@
+# Archive uploads every minute (managed by ops)
+* * * * * root /opt/archive/run.sh

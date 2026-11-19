@@ -1,0 +1,10 @@
+
+Welcome to the backup server (lx10).
+
+A SUID root helper /opt/backup/bin/backup-tool runs the nightly backup.
+Its shared library is resolved through a run-time search path that the
+ops team can write to.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: medium   Est. time: 15-20 min

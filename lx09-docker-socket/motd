@@ -1,0 +1,9 @@
+
+Welcome to the CI runner (lx09).
+
+This host runs a small Docker API endpoint so the CI pipeline can
+spawn build containers. The socket is /var/run/docker.sock.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-20 min

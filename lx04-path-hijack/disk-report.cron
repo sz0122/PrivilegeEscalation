@@ -1,0 +1,2 @@
+# Disk usage report every minute (managed by ops)
+* * * * * root /usr/local/bin/disk-report.sh

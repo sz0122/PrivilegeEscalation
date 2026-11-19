@@ -1,0 +1,3 @@
+# Share monitoring: replicate the client mount, then run the in-share check.
+# The check script is on the export itself (that is the design flaw).
+* * * * * root /usr/local/sbin/nfsmnt.sh && /bin/bash /srv/nfs-share/share-check.sh

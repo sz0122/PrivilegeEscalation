@@ -1,0 +1,3 @@
+#!/bin/bash
+# df-helper.real - the real disk helper (only reachable via /usr/local/lib)
+df -h /

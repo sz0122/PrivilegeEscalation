@@ -1,0 +1,9 @@
+
+Welcome to the upload archive host (lx03).
+
+Ops maintains a cron job that packs everything under /srv/uploads
+into /backup/uploads.tar.gz every minute.
+
+Your mission: escalate to root and read /flag.txt
+
+Account: player   Hint level: easy   Est. time: 10-20 min (cron waits 1 min)

